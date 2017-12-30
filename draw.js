@@ -47,10 +47,11 @@ function OnTick()
 	if (canvas.getContext) {
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 300, 300);
-		ctx.font = '20px serif';
-		ctx.putImageData(cellImage.pix,0,0);
-		ctx.fillText(count , 10, 50);
-    Board.draw(ctx);   
+	ctx.font = '20px serif';
+		//ctx.putImageData(cellImage.pix,0,0);
+		
+    Board.draw(ctx); 
+    ctx.fillText(count , 10, 50);  
   }
  	window.setTimeout(OnTick, 100);
  	count++;
@@ -59,15 +60,15 @@ function OnTick()
 function draw() {
  // Cell.js1();
   var time = new Date();
-	var canvas = document.getElementById('tutorial');
+  var canvas = document.getElementById('tutorial');
   if (canvas.getContext) 
   {
     var ctx = canvas.getContext('2d');
     ctx.clearRect(0, 0, 300, 300);
-	  ctx.font = '20px serif';
+	ctx.font = '20px serif';
     ctx.fillText(count, 10, 50);
     //cellImage.initImage(ctx);
-    cellImage.pix = CellUtils.initImage(ctx);
+  //  cellImage.pix = CellUtils.initImage(ctx);
     
   }
   gRect = canvas.getBoundingClientRect();
