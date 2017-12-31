@@ -7,21 +7,7 @@ var cellImage =
   width :  0,
   height : 0,
 	pix: null,
-  /*
-  initImage : function(ctx) 
-  { 
-    this.pix = ctx.createImageData(40,40);
-    for (var i=0;i<this.pix.data.length;i+=4)
-    {
-        this.pix.data[i+0]=25;
-        this.pix.data[i+1]=200;
-        this.pix.data[i+2]=0;
-        this.pix.data[i+3]=255;
-    }
-    //return something; 
-  }
-  */
-  
+ 
 };
 
 var isTruthy = function(value) {  
@@ -46,10 +32,7 @@ function OnTick()
 	var canvas = document.getElementById('tutorial');
 	if (canvas.getContext) {
     var ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, 300, 300);
-	ctx.font = '20px serif';
-		//ctx.putImageData(cellImage.pix,0,0);
-		
+ 	ctx.font = '20px serif';
     Board.draw(ctx); 
     ctx.fillText(count , 10, 50);  
   }
@@ -67,20 +50,26 @@ function draw() {
     ctx.clearRect(0, 0, 300, 300);
 	ctx.font = '20px serif';
     ctx.fillText(count, 10, 50);
-    //cellImage.initImage(ctx);
-  //  cellImage.pix = CellUtils.initImage(ctx);
-    
+     
   }
   gRect = canvas.getBoundingClientRect();
   Board.init(ctx);
   //alert(gRect.left);
-  //var el = document.getElementById('element');
-	canvas.onmousemove = function(event) 
+  
+  canvas.onmousemove = function(event) 
   {
     var xp =   event.clientX-gRect.left;
-    element.textContent = 'screen: (' + xp + ', ' + event.clientY + ')\n' +
-                          'alt: ' + event.altKey;
-                        
+    var yp =   event.clientY-gRect.top;
+    element.textContent = 'screen: (' + xp + ', ' + yp + ')\n' +'alt: ' + event.altKey;
+    Board.onMouseMove(xp,yp);                      
+  };
+
+  canvas.onmousedown = function(event) 
+  {
+    var xp =   event.clientX-gRect.left;
+    var yp =   event.clientY-gRect.top;
+    element.textContent = 'screendown: (' + xp + ', ' + yp + ')\n' +'alt: ' + event.altKey;
+    Board.onMouseDown(xp,yp);                      
   };
        
 	console.log( time.getSeconds());

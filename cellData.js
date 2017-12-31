@@ -1,13 +1,5 @@
 
 
-function Cell( left, top, pix)
-{
-  this.left = left;
-  this.top  = top;
-  this.pix  = pix;
-}
-
-
 
 
 var CellUtils = 
@@ -124,7 +116,20 @@ var CellUtils =
 		this.left = left;
   		this.top  = top;
   		this.pix  = pix;
-  	}
+  	},
+
+  	imagedataToImage: function (imagedata) 
+  	{
+    	var canvas = document.createElement('canvas');
+    	var ctx = canvas.getContext('2d');
+    	canvas.width = imagedata.width;
+    	canvas.height = imagedata.height;
+    	ctx.putImageData(imagedata, 0, 0);
+    	var image = new Image();
+    	image.src = canvas.toDataURL();
+    	return image;
+	}
+
 };
 
 
@@ -132,58 +137,117 @@ var CellUtils =
 var Board=
 {
  
-  elementSize :8,
-  numInX:16,
-  numInY:16,
-  pixels  : [null],
-  pathPix : [null],
-  path  : [
-  				[0,1,1,1,1,0],
-  				[3,0,3,1,4,1],
-  				[4,3,3,3,3,4]
+  	drawCall : 0,
+  	elementSize :8,
+  	numInX:16,
+  	numInY:16,
+  	pixels  : [null],
+  	pathPix : [null],
+  	path  : [
+  				[0,1, 1,1, 1,0],
+  				[3,0, 3,1, 4,1],
+  				[4,3, 3,3, 3,4],
+  				[0,3, 1,3, 1,4],
+ 				[1,0, 1,1, 1,2, 1,3, 1,4],
+				[0,1, 1,1, 2,1, 3,1, 4,1],
+				[3,0, 3,1, 3,2, 3,3, 3,4],
+				[0,3, 1,3, 2,3, 3,3, 4,3],
   			],	
-  cells : [null],
+  	cellArray : [[null]],
+  	auxImage : null,
+  	animTask: {
+  		img: null,
+  		rStart: 0,
+  		rEnd: 0,
+  		rCurr:0,
+  		rStep:0,
+   		init: function( rs, re, xs, xe, num, img)
+  		{
+  			this.img = img;
+  			this.rStart = rs;
+  			this.rCurr = rs;
+  			this.rEnd = re;
+  			this.rStep = (re - rs)/num;
+  		},
 
-  init : function( ctx)
-  {
+  		perform : function(ctx)
+  		{
+           if(this.img != null){
+    			ctx.translate( 20,20);
+    			ctx.rotate(this.rCurr *3.1415/180.0);
+    			ctx.drawImage(this.img,-20,-20, 40, 40);
+    			ctx.resetTransform();
+    			this.rCurr += this.rStep;
+    			if( this.rCurr >=this.rEnd)
+    			{
+    				this.rCurr = this.rEnd;
+    			}
+            }
+  		}
+  	},
 
-   // var xa = this.path[0];
-   
-    this.pixels[0]  = CellUtils.initBkImage(ctx, this.elementSize);
-    for( var i  = 0; i< this.path.length; i++)
-    {
-        this.pathPix[i] = CellUtils.initPathImage(ctx, this.elementSize, this.path[i]);
-
-    }
- 
-    var sz = this.elementSize *5;
-    var cnt = 0;
-    for( var y = 0; y<this.numInY; y++)
-    {
-    	for( var x = 0; x< this.numInX; x++)
+	init : function( ctx)
+ 	{
+  		this.pixels[0]  = CellUtils.initBkImage(ctx, this.elementSize);
+    	for( var i  = 0; i< this.path.length; i++)
     	{
-    		this.cells[cnt] = new CellUtils.createCell(x*sz, y*sz,this.pixels[0]);
-    		cnt++;
+        	this.pathPix[i] = CellUtils.initPathImage(ctx, this.elementSize, this.path[i]);
+    	}
+ 
+    	var sz = this.elementSize *5;
+    	var cnt = 0;
+    	for( var y = 0; y<this.numInY; y++)
+    	{
+    		this.cellArray[y] = new Array();
+    		for( var x = 0; x< this.numInX; x++)
+    		{
+     			this.cellArray[y][x] = new CellUtils.createCell(x*sz, y*sz,this.pixels[0]);
+    			cnt++;
+			}
 		}
-	}
+    	// Create some image
+   	    this.auxImage  = CellUtils.imagedataToImage(this.pathPix[4]);
 
-    // show all
-     for( var i  = 0; i< this.path.length; i++)
-     {
-		this.cells[i].pix = this.pathPix[i];
-     }
-  
-  },
+    	// show all
+    	var ln = 0;
+    	for( var i  = 0; i < this.path.length; i+=4)
+    	{
+    		this.cellArray[ln][0].pix = this.pathPix[i+ 0];
+    		this.cellArray[ln][1].pix = this.pathPix[i+ 1];
+    		this.cellArray[ln][2].pix = this.pathPix[i+ 2]; 
+    		this.cellArray[ln][3].pix = this.pathPix[i+ 3];
+    		ln++;
+		}
+    },
 
-  draw :function( ctx)
-  {
-  	var sz = this.elementSize *5;
-  	for( var x = 0; x< this.cells.length; x++)
+  	draw :function( ctx)
   	{
-		ctx.putImageData(this.cells[x].pix, this.cells[x].left, this.cells[x].top);
-	}
-	//ctx.putImageData(this.pixels[0], this.cells[2].left,50);
-  }
+  		var sz = this.elementSize *5; 
+		for( var line = 0; line < this.numInY; line++ )
+		{
+			for( var row = 0; row< this.numInX; row++ )
+			{
+				var cl = this.cellArray[line][row];
+				ctx.putImageData(cl.pix, cl.left, cl.top);
+			}
+		}
+		// Do animations
+		this.animTask.perform(ctx);
+		this.drawCall++;
+  	},
+
+  	onMouseMove : function( xp, yp)
+  	{
+
+  	},
+
+  	onMouseDown : function( xp, yp)
+  	{
+  		var sz = this.elementSize *5;
+  		line = Math.floor(yp/sz);
+  		row  = Math.floor(xp/sz);
+  		this.animTask.init( 0, 360, 0, 0, 6, this.auxImage);
+   	}
 
  
 };
