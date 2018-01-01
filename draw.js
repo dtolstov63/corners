@@ -10,34 +10,47 @@ var cellImage =
  
 };
 
-var isTruthy = function(value) {  
-  return !!value;
-};
+var gAnimCount  = 0;
+var gAnimReqId  = undefined;
 
 
-function getMousePos(canvas, evt) 
-{
-  var rect = canvas.getBoundingClientRect();
-  return 
-  {
-    x: evt.clientX - rect.left
-   // y: evt.clientY - rect.top
-  };
-}
 
 
 function OnTick()
 {
-	var time = new Date();
 	var canvas = document.getElementById('tutorial');
 	if (canvas.getContext) {
-    var ctx = canvas.getContext('2d');
- 	ctx.font = '20px serif';
-    Board.draw(ctx); 
-    ctx.fillText(count , 10, 50);  
-  }
- 	window.setTimeout(OnTick, 100);
+    	var ctx = canvas.getContext('2d');
+ 		ctx.font = '20px serif';
+   	 	Board.draw(ctx); 
+    	ctx.fillText(count , 10, 50);  
+  	}
+ 	window.setTimeout(OnTick, 1000);
+ 	//requestAnimationFram(onTick);
  	count++;
+}
+
+function OnAnim()
+{
+	if( gAnimCount < 0)
+	{
+		if( gAnimReqId ){
+			window.cancelAnimationFrame(gAnimReqId);
+			gAnimReqId = undefined;
+
+		}
+		return;
+	}
+	var canvas = document.getElementById('tutorial');
+	if (canvas.getContext) 
+	{
+		var ctx = canvas.getContext('2d');
+		Board.draw(ctx);
+		ctx.font = '20px serif';
+		//ctx.fillText("ANIMATING" , 10, 50);  
+	}
+	window.setTimeout(OnAnim, 16);
+	gAnimCount--;
 }
 
 function draw() {
@@ -61,21 +74,29 @@ function draw() {
     var xp =   event.clientX-gRect.left;
     var yp =   event.clientY-gRect.top;
     element.textContent = 'screen: (' + xp + ', ' + yp + ')\n' +'alt: ' + event.altKey;
-    Board.onMouseMove(xp,yp);                      
+    Board.onMouseMove(xp,yp);  
+   // requestAnimationFrame(OnTick);                    
   };
 
   canvas.onmousedown = function(event) 
   {
+  	var cv = document.getElementById('tutorial');
+  	var ctx = canvas.getContext('2d');
     var xp =   event.clientX-gRect.left;
     var yp =   event.clientY-gRect.top;
     element.textContent = 'screendown: (' + xp + ', ' + yp + ')\n' +'alt: ' + event.altKey;
-    Board.onMouseDown(xp,yp);                      
+    gAnimCount = Board.onMouseDown(xp,yp,ctx);  
+    if( gAnimCount >0){
+    	gAnimCount++;
+    	gAnimReqId = requestAnimationFrame(OnAnim);
+	}
   };
-       
+     
+     //requestAnimationFrame(OnAnim); 
 	console.log( time.getSeconds());
        // window.setTimeout(OnTick, 1000);
         //if( count==0){
-		window.requestAnimationFrame(OnTick);
+	requestAnimationFrame(OnTick);
 	//}
        
 }
